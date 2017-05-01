@@ -1,4 +1,4 @@
-/*********************************************\
+/******************************************************************\
  * Graph Maker
  * Create and make a graph based on the
  * INPUT.TXT file in the same directory.
@@ -10,7 +10,16 @@
  *
  * Array of neighbors is defined as such
  * [upleft,up,upright,downleft,down,downright]
-\*********************************************/
+\******************************************************************/
+
+/******************************************************************\
+ * Current Tasks:
+ * 
+ * Line 111,116,123: I am trying to dynamically create a new hexagon
+ * at each run of the for loop but currently, syntax is producing
+ * error: request for member `y/weight' in something not a structure or union
+ *
+\*******************************************************************/
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -30,7 +39,7 @@ struct hexdef{
   struct hexdef* next[6];         /* array of neighbors */
 };
 struct hexgraph{
-  struct hexdef* edges[MAXV];         /* adj list for each vertex */
+  struct hexdef* vertices[MAXV];           /* adj list for each vertex */
   int nvertices;                        /* number of vertices in graph */
   int nedges;                           /* number of edges in graph*/
 };
@@ -56,7 +65,7 @@ void dijkstra(struct hexgraph* g, int start) {
 
   while(!intree[v]) {
     intree[v] = TRUE;
-    p = g->edges[v];
+    p = g->vertices[v];
     while (p != NULL) {
       w = p -> y;
       weight = p -> weight;
@@ -65,7 +74,7 @@ void dijkstra(struct hexgraph* g, int start) {
         parent[w] = v;
       }
       v++;
-      p = g->edges[v]; //originally p = p->next;
+      p = g->vertices[v]; //originally p = p->next;
     }
     v = 1;
     dist = MAXINT;  //As of now, assumed that MAXINT arbitrarily large for compares
@@ -95,25 +104,24 @@ int main() {
   graph.nedges = 233;
 
   //Create Each Node
-  for (i=1;i<=233;i++) {
+  for (i=1;i<=233;i++) {    
+    //Create the new hexagon and store to graph list of vertices
+    //struct hexdef hexagon;                              //Original definition of hexagon here
+    x = 0;
+    graph.vertices[i] = malloc(sizeof(struct hexdef));    //Attempting new hexagon* and set to graph.vertices[i]
 
     //Grab and set node number
-    x = 0;
-    struct hexdef hexagon;// = malloc(sizeof(hexagon));
     while(isdigit(c = getchar())) {
       x = (x*10) + (c - '0');
-    } printf("Node is: %d     ", x);
-    hexagon.y = x;
+    } graph.vertices[i].y = x;
+    //printf("Node is: %d     ", *graph.vertices[i].y);
 
     //Grab and set weight number
     x = 0;
     while(isdigit(c = getchar())) {
       x = (x*10) + (c - '0');
-    } printf("Cost is: %d \n", x);
-    hexagon.weight = x;
-
-    //graph.vertices[i] = &hexagon;    //IN PROGRESS
-    //printf("Address set is %p\n", &hexagon);
+    } graph.vertices[i].weight = x;
+    //printf("Cost is: %d \n", graph.vertices[i].weight);
   }
   close(input_fd);
 
