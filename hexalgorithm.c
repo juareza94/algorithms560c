@@ -22,19 +22,60 @@
 #define MAXV 233
 #define TRUE 1
 #define FALSE 0
-
-//void dijkstra(graph *g, int start); //NEEDS WORK
+#define MAXINT 9999
 
 struct hexdef{
   int y;                          /* hexagon number */
   int weight;                     /* hexagon weight */
   struct hexdef* next[6];         /* array of neighbors */
 };
-struct graphdef{
-  struct hexdef* vertices[MAXV];         /* adj list for each vertex */
+struct hexgraph{
+  struct hexdef* edges[MAXV];         /* adj list for each vertex */
   int nvertices;                        /* number of vertices in graph */
   int nedges;                           /* number of edges in graph*/
 };
+
+void dijkstra(struct hexgraph* g, int start) {
+  int i;
+  int v;
+  int w;
+  struct hexdef* p;
+  int weight;
+  int dist;
+  int intree[MAXV+1];
+  int distance[MAXV+1];
+  int parent[MAXV+1];
+
+  for (i=1; i<=g->nvertices; i++) {
+    intree[i] = FALSE;
+    distance[i] = MAXINT;
+    parent[i] = -1;
+  }
+  distance[start] = 0;
+  v = start;
+
+  while(!intree[v]) {
+    intree[v] = TRUE;
+    p = g->edges[v];
+    while (p != NULL) {
+      w = p -> y;
+      weight = p -> weight;
+      if (distance[w] > (distance[v]+weight)) {
+        distance[w] = distance[v] + weight;
+        parent[w] = v;
+      }
+      v++;
+      p = g->edges[v]; //originally p = p->next;
+    }
+    v = 1;
+    dist = MAXINT;  //As of now, assumed that MAXINT arbitrarily large for compares
+    for (i=1; i <= g->nvertices; i++)
+      if (!intree[i] && (dist > distance[i])) {
+        dist = distance[i];
+        v = i;
+      }
+  }
+}
 
 int main() {
   //Open and direct the file to STDIN
@@ -49,7 +90,7 @@ int main() {
   char number[3];
 
   //Define the graph
-  struct graphdef graph;
+  struct hexgraph graph;
   graph.nvertices = 233;
   graph.nedges = 233;
 
@@ -77,49 +118,8 @@ int main() {
   close(input_fd);
 
   //Assign Each Node Its Children
-
+  //IN PROGRESS
 
   //Find the Shortest Path
+  //dijkstra()
 }
-
-/* NEEDS WORK
-void dijkstra(graph *g, int start) {
-  int i;
-  int v;
-  int w;
-  int weight;
-  int dist;
-  bool intree[MAXV+1];
-  int distance[MAX+1];
-  int parent[MAXV+1];
-
-  for (i=1; i<=g->nvertices; i++) {
-    intree[i] = FALSE;
-    distance[i] = MAXINT;
-    parent[i] = -1;
-  }
-  distance[start] = 0;
-  v = start;
-
-  while(!intree[v]) {
-    intree[v] = TRUE;
-    p = g->edges[v];
-    while (p != NULL) {
-      w = p -> y;
-      weight = p -> weight;
-      if (distance[w] > (distance[v]+weight)) {
-        distance[w] = distance[v] + weight;
-        parent[w] = v;
-      }
-      p = p->next;
-    }
-    v = 1;
-    dist = MAXINT;
-    for (i=1; i <= g->nvertices; i++)
-      if (!intree[i] && (dist > distance[i])) {
-        dist = distance[i];
-        v = i;
-      }
-  }
-}
-*/
