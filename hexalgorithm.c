@@ -9,7 +9,7 @@
  * Compile using: gcc hexalgorithm.c
  *
  * Array of neighbors is defined as such
- * [upleft,up,upright,downleft,d,dr]
+ * [upleft,up,upright,downleft,down,downright]
 \*********************************************/
 #include <stdio.h>
 #include <sys/types.h>
