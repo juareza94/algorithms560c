@@ -10,6 +10,7 @@
  *
  * Array of neighbors is defined as such
  * [0-upleft, 1-up, 2-upright, 3-downleft, 5-down, 5-downright]
+ *
 \******************************************************************/
 
 /******************************************************************\
@@ -37,13 +38,14 @@ struct hexdef{
 };
 //Define Graph of Hexagon Cells
 struct hexgraph{
-  struct hexdef* vertices[MAXV];           /* adj list for each vertex */
+  struct hexdef* vertices[MAXV+1];         /* adj list for each vertex */
   int nvertices;                        /* number of vertices in graph */
   int nedges;                           /* number of edges in graph*/
 };
 
 void dijkstra(struct hexgraph* g, int start);
 void testPrinter(int i);
+
 struct hexdef hexagon[MAXV];
 struct hexgraph graph;
 
@@ -60,15 +62,15 @@ int main(int argc, char* argv[]) {
 
   //Set properties of the graph
   graph.nvertices = MAXV;
-  graph.nedges = MAXV;
-
-  for (i=1;i<=233;i++) {
+  graph.nedges = 0;
+  
+  //Make all hexagons in the graph
+  for (i=1;i<=MAXV;i++) {
     //Create the new hexagon and store to graph list of vertices
     graph.vertices[i] = &hexagon[i];
-    //printf("%p\n", graph.vertices[i]);
 
-    x = 0;
     //Grab and set node number
+    x = 0;
     while(isdigit(c = getchar())) {
       x = (x * 10) + (c - '0');
     } hexagon[i].y = x;
@@ -79,32 +81,52 @@ int main(int argc, char* argv[]) {
     while(isdigit(c = getchar())) {
       x = (x*10) + (c - '0');
     } hexagon[i].weight = x;
+    graph.nedges += 1;
     //printf("Cost is: %d \n", hexagon[i].weight);
   }
   close(input_fd);
-
+  
   //Set children for Each Hexagon
   for (i=1; i<=MAXV; i++){
     //top left
     if (i < 9 || (i-1)%15==0) hexagon[i].next[0] = NULL;
-    else hexagon[i].next[0] = &hexagon[i-8];
+    else {
+      hexagon[i].next[0] = &hexagon[i-8];
+      graph.nedges += 1;
+    }
     //top
     if (i<16) hexagon[i].next[1] = NULL;
-    else hexagon[i].next[1] = &hexagon[i-15];
+    else {
+      hexagon[i].next[1] = &hexagon[i-15];
+      graph.nedges += 1;
+    }
     //top right
     if (i < 9 || (i-8)%15==0) hexagon[i].next[2] = NULL;
-    else hexagon[i].next[2] = &hexagon[i-7];
+    else {
+      hexagon[i].next[2] = &hexagon[i-7];
+      graph.nedges += 1;
+    }
     //bottom left
     if (i > 227 || (i-1)%15==0) hexagon[i].next[3] = NULL;
-    else hexagon[i].next[3] = &hexagon[i+7];
+    else {
+      hexagon[i].next[3] = &hexagon[i+7];
+      graph.nedges += 1;
+    }
     //bottom
     if (i>218) hexagon[i].next[4] = NULL;
-    else hexagon[i].next[4] = &hexagon[i+15];
+    else {
+      hexagon[i].next[4] = &hexagon[i+15];
+      graph.nedges += 1;
+    }
     //bottom right
     if (i>225 || (i-8)%15==0) hexagon[i].next[5] = NULL;
-    else hexagon[i].next[5] = &hexagon[i+8];
+    else {
+      hexagon[i].next[5] = &hexagon[i+8];
+      graph.nedges += 1;
+    }
   }
 
+  //Check for test request
   if (argv[1]!=NULL) {
     int test = 0,i;
     for (i = 0;argv[1][i]!=NULL;i++){
@@ -113,8 +135,9 @@ int main(int argc, char* argv[]) {
     }
     testPrinter(test);
   }
+
   //Find the Shortest Path
-  //dijkstra()
+  dijkstra(&graph,226);
 }
 
 void dijkstra(struct hexgraph* g, int start) {
@@ -138,7 +161,7 @@ void dijkstra(struct hexgraph* g, int start) {
 
   while(!intree[v]) {
     intree[v] = TRUE;
-    p = g->vertices[v];
+    p = g->vertices[v];   //error is this
     while (p != NULL) {
       w = p -> y;
       weight = p -> weight;
@@ -163,22 +186,22 @@ void testPrinter(int i){
   printf("Hexagon %d in grid looks like:\n\n", i);
   //TOP
   if (hexagon[i].next[1]==NULL)  printf("     NULL\n");
-  else printf("       %d\n", graph.vertices[i]->next[1]->y);
+  else printf("     %d\n", graph.vertices[i]->next[1]->y);
   if (hexagon[i].next[1]==NULL) printf("      __     \n");
-  else printf("        __     \n");
+  else printf("      __     \n");
   //TOP LEFT
   if(hexagon[i].next[0] == NULL) printf("NULL/    ");
-  else printf("   %d/    ", graph.vertices[i]->next[0]->y);
+  else printf(" %d/    ", graph.vertices[i]->next[0]->y);
   //TOP RIGHT
   if (hexagon[i].next[2] == NULL) printf("\\NULL\n");
   else printf("\\%d \n", graph.vertices[i]->next[2]->y);
   //BOTTOM LEFT
   if (hexagon[i].next[3] == NULL) printf("NULL\\ __ ");
-  else printf("   %d\\ __ ",graph.vertices[i]->next[3]->y);
+  else printf(" %d\\ __ ",graph.vertices[i]->next[3]->y);
   //BOTTOM RIGHT
   if (hexagon[i].next[5] == NULL) printf("/NULL \n");
   else printf("/%d \n", graph.vertices[i]->next[5]->y);
   //BOTTOM
-  if(hexagon[i].next[4] == NULL) printf("    NULL \n");
-  else printf("       %d \n", graph.vertices[i]->next[4]->y);
+  if(hexagon[i].next[4] == NULL) printf("     NULL \n");
+  else printf("     %d \n", graph.vertices[i]->next[4]->y);
 }
