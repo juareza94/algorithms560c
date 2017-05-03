@@ -15,7 +15,9 @@
 
 /******************************************************************\
  * Current Tasks:
- * dijkstra
+ * Dijkstra's Algorithm currently passes through the graph but is
+ * Not taking the mose efficient path. See note on line 173 under
+ * dijkstra function > Algorithm
 \*******************************************************************/
 #include <stdio.h>
 #include <sys/types.h>
@@ -40,7 +42,7 @@ struct hexdef{
 };
 //Define Graph of Hexagon Cells
 struct hexgraph{
-  struct hexdef* vertices[MAXV+1];      /* adj list for each vertex */
+  struct hexdef* edges[MAXV+1];         /* adj list for each vertex */
   int nvertices;                        /* number of vertices in graph */
   int nedges;                           /* number of edges in graph*/
 };
@@ -69,7 +71,7 @@ int main(int argc, char* argv[]) {
   //Make all hexagons in the graph
   for (i=1;i<=MAXV;i++) {
     //Create the new hexagon and store to graph list of vertices
-    graph.vertices[i] = &hexagon[i];
+    graph.edges[i] = &hexagon[i];
 
     //Grab and set node number
     x = 0;
@@ -151,14 +153,16 @@ void dijkstra(struct hexgraph* g, int start) {
 	int visited[MAXV+1];
 
   int queue[MAXV+1];
+  int wasqueued[MAXV+1];
   int front = 0, rear = 0;
 
 	//Prepare for Dijkstra's Algorithm
 	for (i=1;i<=MAXV;i++){
 		parent[i] = 0;
 		cost[i] = MAXINT;
-		visited[i] = 0;
-	} cost[start] = g->vertices[start]->weight;  //add in cost of first node
+		visited[i] = FALSE;
+    wasqueued[i] = 0;
+	} cost[start] = g->edges[start]->weight;  //add in cost of first node
 
   //Add Start to the Queue
   queue[front] = start;
@@ -166,48 +170,64 @@ void dijkstra(struct hexgraph* g, int start) {
   i = queue[front];
 
   //Algorithm
+  /* See PDF Posted by Julia in Messenger to find where code does not traverse
+   * the correct path.
+   */
   while(front != rear) {  //Loop till queue is empty
-    printf("At hexagon %d\n", i);
+    //printf("At hexagon %d\n", i);
     front+=1;
     for (j = 0 ; j < 6 ; j++)               //Check all children
-      if (g->vertices[i]->next[j]!=NULL) {  //Check existance
-        next = g->vertices[i]->next[j]->y;  //Pull node number
-        printf("At child %d\n", next);
-        if (visited[next]==0) {                 //Check if visited
-          queue[rear] = next;
-          rear += 1;
-          newcost = g->vertices[next]->weight + cost[i];
-          if (cost[next] > newcost) cost[next] = newcost;
+      if (g->edges[i]->next[j]!=NULL) {  //Check existance
+        next = g->edges[i]->next[j]->y;  //Pull node number
+        //printf("At child %d\n", next);
+        if (visited[next]==FALSE) {                 //Check if visited - TODO
+          if (!wasqueued[next]) {
+            queue[rear] = next;
+            rear += 1;
+            wasqueued[next] = 1;
+          }
+          //printf("Added %d to the queue\n", next);
+          newcost = g->edges[next]->weight + cost[i];
+          if (cost[next] > newcost) {
+            cost[next] = newcost;
+            parent[next] = i;
+          }
         }
       }
-    visited[i] = 1;
+    visited[i] = TRUE;
     i = queue[front];
   }
   //for (i=1;i<=MAXV;i++) printf("Vertex '%d' has cost '%d' to reach.\n", i, cost[i]);
-  //for (i=1;i<=MAXV;i++) printf("%d,\n", queue[i]);
-  //printf("Cost of end is %d\n", cost[8]);
+  //for (i=1;i<=MAXV;i++) printf("%d, ", queue[i]);
+  //for (i=1;i<=MAXV;i++) if (visited[i] == 1) printf("%d has been visited.\n", i);
+  printf("Cost of end is %d\n", cost[8]);
+  for(i=END;i!=start;) {
+    printf("Parent of %d is %d\n", i, parent[i]);
+    i = parent[i];
+  }
 }
+
 
 void testPrinter(int i){
   printf("Hexagon %d in grid looks like:\n\n", i);
   //TOP
   if (hexagon[i].next[1]==NULL)  printf("     NULL\n");
-  else printf("     %d\n", graph.vertices[i]->next[1]->y);
+  else printf("     %d\n", graph.edges[i]->next[1]->y);
   if (hexagon[i].next[1]==NULL) printf("      __     \n");
   else printf("      __     \n");
   //TOP LEFT
   if(hexagon[i].next[0] == NULL) printf("NULL/    ");
-  else printf(" %d/    ", graph.vertices[i]->next[0]->y);
+  else printf(" %d/    ", graph.edges[i]->next[0]->y);
   //TOP RIGHT
   if (hexagon[i].next[2] == NULL) printf("\\NULL\n");
-  else printf("\\%d \n", graph.vertices[i]->next[2]->y);
+  else printf("\\%d \n", graph.edges[i]->next[2]->y);
   //BOTTOM LEFT
   if (hexagon[i].next[3] == NULL) printf("NULL\\ __ ");
-  else printf(" %d\\ __ ",graph.vertices[i]->next[3]->y);
+  else printf(" %d\\ __ ",graph.edges[i]->next[3]->y);
   //BOTTOM RIGHT
   if (hexagon[i].next[5] == NULL) printf("/NULL \n");
-  else printf("/%d \n", graph.vertices[i]->next[5]->y);
+  else printf("/%d \n", graph.edges[i]->next[5]->y);
   //BOTTOM
   if(hexagon[i].next[4] == NULL) printf("     NULL \n");
-  else printf("     %d \n", graph.vertices[i]->next[4]->y);
+  else printf("     %d \n", graph.edges[i]->next[4]->y);
 }
