@@ -24,11 +24,13 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stdlib.h>
+#define START 226
+#define END 8
 #define STDIN 0
 #define MAXV 233
 #define TRUE 1
 #define FALSE 0
-#define MAXINT 9999
+#define MAXINT 99999999
 
 //Define Hexagon Cell
 struct hexdef{
@@ -38,7 +40,7 @@ struct hexdef{
 };
 //Define Graph of Hexagon Cells
 struct hexgraph{
-  struct hexdef* vertices[MAXV+1];         /* adj list for each vertex */
+  struct hexdef* vertices[MAXV+1];      /* adj list for each vertex */
   int nvertices;                        /* number of vertices in graph */
   int nedges;                           /* number of edges in graph*/
 };
@@ -63,7 +65,7 @@ int main(int argc, char* argv[]) {
   //Set properties of the graph
   graph.nvertices = MAXV;
   graph.nedges = 0;
-  
+
   //Make all hexagons in the graph
   for (i=1;i<=MAXV;i++) {
     //Create the new hexagon and store to graph list of vertices
@@ -83,9 +85,8 @@ int main(int argc, char* argv[]) {
     } hexagon[i].weight = x;
     graph.nedges += 1;
     //printf("Cost is: %d \n", hexagon[i].weight);
-  }
-  close(input_fd);
-  
+  } close(input_fd);
+
   //Set children for Each Hexagon
   for (i=1; i<=MAXV; i++){
     //top left
@@ -107,7 +108,7 @@ int main(int argc, char* argv[]) {
       graph.nedges += 1;
     }
     //bottom left
-    if (i > 227 || (i-1)%15==0) hexagon[i].next[3] = NULL;
+    if (i > 226 || (i-1)%15==0) hexagon[i].next[3] = NULL;
     else {
       hexagon[i].next[3] = &hexagon[i+7];
       graph.nedges += 1;
@@ -137,49 +138,54 @@ int main(int argc, char* argv[]) {
   }
 
   //Find the Shortest Path
-  dijkstra(&graph,226);
+  dijkstra(&graph,START);
 }
 
 void dijkstra(struct hexgraph* g, int start) {
-  int i;
-  int v;
-  int w;
-  struct hexdef* p;
-  int weight;
-  int dist;
-  int intree[MAXV+1];
-  int distance[MAXV+1];
-  int parent[MAXV+1];
+  int i;      //the current hexagon
+  int j;      //children of hexagon[i]
+	int next;
+	int newcost;
+	int parent[MAXV+1];
+	int cost[MAXV+1];
+	int visited[MAXV+1];
 
-  for (i=1; i<=g->nvertices; i++) {
-    intree[i] = FALSE;
-    distance[i] = MAXINT;
-    parent[i] = -1;
-  }
-  distance[start] = 0;
-  v = start;
+  int queue[MAXV+1];
+  int front = 0, rear = 0;
 
-  while(!intree[v]) {
-    intree[v] = TRUE;
-    p = g->vertices[v];   //error is this
-    while (p != NULL) {
-      w = p -> y;
-      weight = p -> weight;
-      if (distance[w] > (distance[v]+weight)) {
-        distance[w] = distance[v] + weight;
-        parent[w] = v;
+	//Prepare for Dijkstra's Algorithm
+	for (i=1;i<=MAXV;i++){
+		parent[i] = 0;
+		cost[i] = MAXINT;
+		visited[i] = 0;
+	} cost[start] = g->vertices[start]->weight;  //add in cost of first node
+
+  //Add Start to the Queue
+  queue[front] = start;
+  rear += 1;
+  i = queue[front];
+
+  //Algorithm
+  while(front != rear) {  //Loop till queue is empty
+    printf("At hexagon %d\n", i);
+    front+=1;
+    for (j = 0 ; j < 6 ; j++)               //Check all children
+      if (g->vertices[i]->next[j]!=NULL) {  //Check existance
+        next = g->vertices[i]->next[j]->y;  //Pull node number
+        printf("At child %d\n", next);
+        if (visited[next]==0) {                 //Check if visited
+          queue[rear] = next;
+          rear += 1;
+          newcost = g->vertices[next]->weight + cost[i];
+          if (cost[next] > newcost) cost[next] = newcost;
+        }
       }
-      v++;
-      p = g->vertices[v]; //originally p = p->next;
-    }
-    v = 1;
-    dist = MAXINT;  //As of now, assumed that MAXINT arbitrarily large for compares
-    for (i=1; i <= g->nvertices; i++)
-      if (!intree[i] && (dist > distance[i])) {
-        dist = distance[i];
-        v = i;
-      }
+    visited[i] = 1;
+    i = queue[front];
   }
+  //for (i=1;i<=MAXV;i++) printf("Vertex '%d' has cost '%d' to reach.\n", i, cost[i]);
+  //for (i=1;i<=MAXV;i++) printf("%d,\n", queue[i]);
+  //printf("Cost of end is %d\n", cost[8]);
 }
 
 void testPrinter(int i){
