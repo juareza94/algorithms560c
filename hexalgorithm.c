@@ -15,9 +15,7 @@
 
 /******************************************************************\
  * Current Tasks:
- * Dijkstra's Algorithm currently passes through the graph but is
- * Not taking the mose efficient path. See note on line 173 under
- * dijkstra function > Algorithm
+ * dijkstra
 \*******************************************************************/
 #include <stdio.h>
 #include <sys/types.h>
@@ -170,9 +168,6 @@ void dijkstra(struct hexgraph* g, int start) {
   i = queue[front];
 
   //Algorithm
-  /* See PDF Posted by Julia in Messenger to find where code does not traverse
-   * the correct path.
-   */
   while(front != rear) {  //Loop till queue is empty
     //printf("At hexagon %d\n", i);
     front+=1;
@@ -200,8 +195,9 @@ void dijkstra(struct hexgraph* g, int start) {
   //for (i=1;i<=MAXV;i++) printf("Vertex '%d' has cost '%d' to reach.\n", i, cost[i]);
   //for (i=1;i<=MAXV;i++) printf("%d, ", queue[i]);
   //for (i=1;i<=MAXV;i++) if (visited[i] == 1) printf("%d has been visited.\n", i);
-  printf("Cost of end is %d\n", cost[8]);
-  for(i=END;i!=start;) {
+  int test = 155;
+  printf("Cost of %d is %d\n", test, cost[test]);
+  for(i=test;i!=start;) {
     printf("Parent of %d is %d\n", i, parent[i]);
     i = parent[i];
   }
